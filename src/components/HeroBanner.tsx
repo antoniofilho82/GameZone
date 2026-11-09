@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, ShoppingBag, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Sparkles } from 'lucide-react'
 
 import type { Game } from '../types/game'
 
 import './HeroBanner.css'
 
+/** Lista de jogos usada para selecionar e rotacionar os destaques. */
 interface HeroBannerProps {
   games: Game[]
 }
@@ -15,11 +16,15 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   currency: 'BRL',
 })
 
+/** Banner rotativo de até seis jogos, com autoplay e controles laterais. */
 function HeroBanner({ games }: HeroBannerProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const navigate = useNavigate()
   const featuredGames = games.filter((game) => game.isFeatured)
-  const slides = featuredGames.length > 0 ? featuredGames : games
+  const slides = [
+    ...featuredGames,
+    ...games.filter((game) => !game.isFeatured),
+  ].slice(0, 6)
   const activeGame = slides[activeIndex % slides.length]
   const bannerImageUrl = activeGame?.coverUrl.replace('w=900', 'w=1800')
 
@@ -27,17 +32,26 @@ function HeroBanner({ games }: HeroBannerProps) {
     setActiveIndex(index)
   }
 
+  function prevSlide() {
+    setActiveIndex((index) => (index - 1 + slides.length) % slides.length)
+  }
+
+  function nextSlide() {
+    setActiveIndex((index) => (index + 1) % slides.length)
+  }
+
   useEffect(() => {
     if (slides.length < 2) {
       return
     }
 
+    // A mudança de slide reinicia o intervalo para evitar avanço logo após interação manual.
     const intervalId = window.setInterval(() => {
       setActiveIndex((index) => (index + 1) % slides.length)
-    }, 6000)
+    }, 8000)
 
     return () => window.clearInterval(intervalId)
-  }, [slides.length])
+  }, [activeIndex, slides.length])
 
   if (!activeGame) {
     return null
@@ -51,6 +65,30 @@ function HeroBanner({ games }: HeroBannerProps) {
       style={{ backgroundImage: `url("${bannerImageUrl}")` }}
     >
       <div className="hero-banner__overlay" />
+      {slides.length > 1 && (
+        <>
+          <button
+            className="hero-banner__nav-zone hero-banner__nav-zone--left"
+            type="button"
+            aria-label="Banner anterior"
+            onClick={prevSlide}
+          >
+            <span className="hero-banner__arrow" aria-hidden="true">
+              <ChevronLeft size={24} />
+            </span>
+          </button>
+          <button
+            className="hero-banner__nav-zone hero-banner__nav-zone--right"
+            type="button"
+            aria-label="Próximo banner"
+            onClick={nextSlide}
+          >
+            <span className="hero-banner__arrow" aria-hidden="true">
+              <ChevronRight size={24} />
+            </span>
+          </button>
+        </>
+      )}
       <div className="hero-banner__content">
         <span className="hero-banner__eyebrow">
           <Sparkles size={16} aria-hidden="true" />

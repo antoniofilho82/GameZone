@@ -1,3 +1,4 @@
+/* --- Card, capa, informações e ações do jogo --- */
 .game-card {
   min-width: 0;
   overflow: hidden;
@@ -27,21 +28,21 @@
 
 .game-card__cover {
   position: relative;
+  display: flex;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  aspect-ratio: 3 / 4;
-  background-color: var(--color-background-secondary);
+  background-color: #0b0b10;
 }
 
 .game-card__cover img {
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 350ms ease;
-}
-
-.game-card:hover .game-card__cover img {
-  transform: scale(1.045);
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
 }
 
 .game-card__discount {
@@ -143,10 +144,4 @@
   border-color: var(--color-primary);
   color: var(--color-highlight);
   background-color: rgb(139 92 246 / 12%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .game-card__cover img {
-    transition: none;
-  }
 }

@@ -1,3 +1,4 @@
+/* --- Estrutura global de página --- */
 .app-layout {
   display: flex;
   min-height: 100vh;

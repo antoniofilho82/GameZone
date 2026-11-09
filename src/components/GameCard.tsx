@@ -9,6 +9,7 @@ import type { Game } from '../types/game'
 
 import './GameCard.css'
 
+/** Dados necessários para renderizar um card individual de jogo. */
 interface GameCardProps {
   game: Game
 }
@@ -18,6 +19,7 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   currency: 'BRL',
 })
 
+/** Exibe capa, preço, plataformas e ações de carrinho e favoritos de um jogo. */
 function GameCard({ game }: GameCardProps) {
   const { addToCart } = useCart()
   const { isFavorite, toggleFavorite } = useFavorites()

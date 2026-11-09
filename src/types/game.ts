@@ -1,3 +1,6 @@
+/** Plataformas normalizadas usadas nos dados locais e filtros do catálogo. */
+export type Platform = 'PC' | 'PlayStation' | 'Xbox' | 'Nintendo' | 'Mobile'
+
 /**
  * Representa um jogo da loja, independentemente de sua origem ser a API ou os dados locais.
  */
@@ -17,7 +20,7 @@ export interface Game {
   /** Categorias de gênero usadas na navegação e nos filtros. */
   genre: string[]
   /** Plataformas nas quais o jogo está disponível. */
-  platforms: string[]
+  platforms: Platform[]
   /** Nota de avaliação opcional apresentada nos detalhes e na ordenação. */
   rating?: number
   /** Data de lançamento no formato textual esperado pela interface. */

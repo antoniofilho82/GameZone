@@ -1,3 +1,4 @@
+/* --- Home, ofertas, destaques e categorias --- */
 .home-page {
   width: min(100% - 48px, 1280px);
   padding: 32px 0 72px;
@@ -42,8 +43,8 @@
 
 .home-page__game-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.25rem;
 }
 
 .home-page__category-grid {
@@ -94,7 +95,6 @@
 }
 
 @media (max-width: 1024px) {
-  .home-page__game-grid,
   .home-page__category-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -113,11 +113,6 @@
 
   .home-page__section-heading {
     align-items: flex-start;
-  }
-
-  .home-page__game-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
   }
 
   .home-page__category-grid {

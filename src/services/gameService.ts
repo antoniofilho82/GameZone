@@ -5,6 +5,7 @@ import { api } from './api'
 import type { Game } from '../types/game'
 import { MOCK_GAMES } from '../data/mockGames'
 
+/** Campos do endpoint de ofertas usados na conversão para o modelo interno. */
 interface CheapSharkDeal {
   gameID: string
   dealID: string
@@ -14,12 +15,14 @@ interface CheapSharkDeal {
   thumb: string
 }
 
+/** Representação do jogo e dos preços retornados pelo endpoint de detalhes. */
 interface CheapSharkGameDeal {
   dealID: string
   price: string
   retailPrice: string
 }
 
+/** Formato do endpoint CheapShark usado na consulta individual de jogos. */
 interface CheapSharkGame {
   info: {
     title: string
@@ -28,6 +31,57 @@ interface CheapSharkGame {
   deals: CheapSharkGameDeal[]
 }
 
+/** Página de jogos da API e metadados de paginação, quando fornecidos. */
+export interface GamesPage {
+  games: Game[]
+  totalCount: number | undefined
+  hasMore: boolean
+}
+
+const API_GENRES = [
+  'Ação',
+  'Aventura',
+  'RPG',
+  'Estratégia',
+  'Corrida',
+  'Arcade',
+  'Simulação',
+  'Exploração',
+  'Ficção científica',
+  'Sobrevivência',
+]
+
+/** Infere gênero por palavras-chave ou hash estável do título. */
+function getGenreForGame(title: string): string {
+  const normalizedTitle = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const genreKeywords: Array<[string, string[]]> = [
+    ['Ação', ['action', 'shooter', 'combat', 'war', 'doom']],
+    ['Aventura', ['adventure', 'quest']],
+    ['RPG', ['rpg', 'souls', 'fantasy']],
+    ['Estratégia', ['strategy', 'tactics']],
+    ['Corrida', ['racing', 'racer']],
+    ['Arcade', ['arcade']],
+    ['Simulação', ['simulator', 'simulation']],
+    ['Exploração', ['exploration', 'explorer']],
+    ['Ficção científica', ['space', 'sci-fi', 'science fiction']],
+    ['Sobrevivência', ['survival']],
+  ]
+  const matchedGenre = genreKeywords.find(([, keywords]) =>
+    keywords.some((keyword) => normalizedTitle.includes(keyword)),
+  )?.[0]
+
+  if (matchedGenre) {
+    return matchedGenre
+  }
+
+  const titleHash = Array.from(normalizedTitle).reduce(
+    (hash, character) => (hash * 31 + character.charCodeAt(0)) >>> 0,
+    0,
+  )
+  return API_GENRES[titleHash % API_GENRES.length]
+}
+
+/** Converte preços textuais da API em números não negativos válidos. */
 function parsePrice(value: string | undefined): number | undefined {
   if (value === undefined) {
     return undefined
@@ -37,6 +91,7 @@ function parsePrice(value: string | undefined): number | undefined {
   return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : undefined
 }
 
+/** Converte uma oferta CheapShark e enriquece gênero e metadados da vitrine. */
 function mapDealToGame(deal: CheapSharkDeal, index = 0): Game | undefined {
   const price = parsePrice(deal.salePrice)
   const originalPrice = parsePrice(deal.normalPrice)
@@ -63,49 +118,93 @@ function mapDealToGame(deal: CheapSharkDeal, index = 0): Game | undefined {
     price,
     originalPrice: originalPrice > price ? originalPrice : undefined,
     discountPercentage,
-    genre: ['Ofertas'],
+    genre: [getGenreForGame(deal.title), 'Ofertas'],
     platforms: ['PC'],
     isOffer: true,
-    isFeatured: index < 3,
+    isFeatured: index < 8,
   }
 }
 
+/** Normaliza um header de contagem, rejeitando valores inválidos. */
+function parseResponseCount(value: unknown): number | undefined {
+  const parsedValue = Number(Array.isArray(value) ? value[0] : value)
+  return Number.isInteger(parsedValue) && parsedValue >= 0 ? parsedValue : undefined
+}
+
+/** Mescla duas listas por título normalizado, priorizando a lista primária. */
+function mergeGamesByTitle(primaryGames: Game[], secondaryGames: Game[]): Game[] {
+  const gamesByTitle = new Map<string, Game>()
+  for (const game of [...primaryGames, ...secondaryGames]) {
+    const normalizedTitle = game.title.trim().toLocaleLowerCase('pt-BR')
+    if (!gamesByTitle.has(normalizedTitle)) {
+      gamesByTitle.set(normalizedTitle, game)
+    }
+  }
+  return Array.from(gamesByTitle.values())
+}
+
+/** Procura um jogo conhecido na base local de demonstração. */
 function fallbackGame(id: string): Game | undefined {
   return MOCK_GAMES.find((game) => game.id === id)
 }
 
-export async function getGames(): Promise<Game[]> {
+/** Busca uma página de ofertas e lê os metadados de paginação expostos pela API. */
+export async function getGamesPage(
+  pageNumber = 0,
+  pageSize = 20,
+): Promise<GamesPage> {
   try {
     const response = await api.get<CheapSharkDeal[]>('/deals', {
-      params: { storeID: 1, pageSize: 12 },
+      params: { storeID: 1, pageNumber, pageSize },
     })
 
-    const gamesById = new Map<string, Game>()
+    const gamesByTitle = new Map<string, Game>()
     response.data.forEach((deal, index) => {
       const game = mapDealToGame(deal, index)
-      if (game && !gamesById.has(game.id)) {
-        gamesById.set(game.id, game)
+      const normalizedTitle = game?.title.trim().toLocaleLowerCase('pt-BR')
+      if (game && normalizedTitle && !gamesByTitle.has(normalizedTitle)) {
+        gamesByTitle.set(normalizedTitle, game)
       }
     })
 
-    if (gamesById.size === 0) {
-      console.warn('A CheapShark não retornou ofertas válidas; usando dados locais.')
-      return MOCK_GAMES
-    }
+    const totalCountHeader = parseResponseCount(response.headers['x-total-count'])
+    const totalPageCount = parseResponseCount(response.headers['x-total-page-count'])
+    const totalCount = totalCountHeader
+    const hasMore =
+      totalPageCount !== undefined
+        ? pageNumber + 1 < totalPageCount
+        : totalCount !== undefined
+          ? (pageNumber + 1) * pageSize < totalCount
+          : response.data.length === pageSize
 
-    return Array.from(gamesById.values())
+    return {
+      games: Array.from(gamesByTitle.values()),
+      totalCount,
+      hasMore,
+    }
   } catch (error) {
-    // O fallback mantém a navegação disponível mesmo sem rede ou com limite da API.
     if (error instanceof AxiosError) {
-      console.error('Não foi possível carregar ofertas da CheapShark; usando dados locais.', error)
+      console.error(`Não foi possível carregar a página ${pageNumber + 1} da CheapShark.`, error)
     } else {
-      console.error('Erro inesperado ao carregar ofertas; usando dados locais.', error)
+      console.error(`Erro inesperado ao carregar a página ${pageNumber + 1} da CheapShark.`, error)
     }
 
-    return MOCK_GAMES
+    if (pageNumber === 0) {
+      console.warn('A CheapShark não retornou ofertas válidas; usando dados locais.')
+      return { games: MOCK_GAMES, totalCount: undefined, hasMore: false }
+    }
+
+    throw error
   }
 }
 
+/** Carrega a primeira coleção de ofertas e combina com jogos locais sem duplicatas. */
+export async function getGames(): Promise<Game[]> {
+  const firstPage = await getGamesPage(0, 60)
+  return mergeGamesByTitle(firstPage.games, MOCK_GAMES)
+}
+
+/** Busca detalhes de um jogo, preferindo mocks conhecidos e usando API como fallback. */
 export async function getGameById(id: string): Promise<Game | undefined> {
   const localGame = fallbackGame(id)
   if (localGame) {
@@ -143,7 +242,7 @@ export async function getGameById(id: string): Promise<Game | undefined> {
         price,
         originalPrice: originalPrice > price ? originalPrice : undefined,
         discountPercentage,
-        genre: ['Ofertas'],
+        genre: [getGenreForGame(apiGame.info.title), ...(originalPrice > price ? ['Ofertas'] : [])],
         platforms: ['PC'],
         isOffer: originalPrice > price,
       }

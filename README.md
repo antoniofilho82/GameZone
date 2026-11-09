@@ -16,7 +16,7 @@
 ## 🚀 Funcionalidades Principais
 
 - **Vitrine & Destaques (Home):** Carrossel interativo de jogos em destaque (`HeroBanner`) com rotação automática via `setInterval` e seções de ofertas imperdíveis.
-- **Catálogo com Busca & Filtros Dinâmicos:** Filtragem em tempo real otimizada com `useMemo` por busca textual (parâmetro de URL), gênero, plataforma e ordenação por preço, nome ou avaliação.
+- **Catálogo com Busca & Filtros Dinâmicos:** Filtragem em tempo real otimizada com `useMemo` por busca textual local, gênero (pré-selecionável por parâmetro de URL), plataforma e ordenação por preço, nome ou avaliação.
 - **Ficha Técnica Detalhada (`GameDetails`):** Galeria interativa de capturas de tela com alternância de mídia ativa, preços formatados em BRL e Buy Box lateral.
 - **Carrinho de Compras (`CartContext`):** Gestão de quantidades, remoção de itens, cupons de desconto demonstrativos (`GAMEZONE10`, `DESCONTO10`), resumo monetário e persistência automática em `localStorage`.
 - **Lista de Desejos (`FavoritesContext`):** Adição/remoção de favoritos (Wishlist) com opção de transferência direta de itens para o carrinho.

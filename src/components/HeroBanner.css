@@ -1,3 +1,4 @@
+/* --- Banner de destaque e navegação por slides --- */
 .hero-banner {
   position: relative;
   display: flex;
@@ -17,6 +18,73 @@
   background:
     linear-gradient(90deg, rgb(11 11 16 / 98%) 0%, rgb(11 11 16 / 88%) 42%, rgb(11 11 16 / 24%) 100%),
     linear-gradient(0deg, rgb(11 11 16 / 35%), transparent 55%);
+}
+
+.hero-banner__nav-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  width: 15%;
+  min-height: 0;
+  align-items: center;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 0;
+  color: #fff;
+  background: transparent !important;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.hero-banner__nav-zone--left {
+  left: 0;
+  justify-content: flex-start;
+  background: linear-gradient(to right, rgb(11 11 16 / 75%), transparent) !important;
+}
+
+.hero-banner__nav-zone--right {
+  right: 0;
+  justify-content: flex-end;
+  background: linear-gradient(to left, rgb(11 11 16 / 75%), transparent) !important;
+}
+
+.hero-banner__nav-zone:hover {
+  opacity: 1;
+}
+
+.hero-banner__nav-zone:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--color-highlight);
+  outline-offset: 3px;
+}
+
+.hero-banner__arrow {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 15%) !important;
+  border-radius: 50%;
+  color: #fff !important;
+  background: rgb(15 15 22 / 85%) !important;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  pointer-events: auto;
+}
+
+.hero-banner__arrow:hover {
+  transform: scale(1.1);
+  border-color: #8b5cf6 !important;
+  color: #fff !important;
+  background: #8b5cf6 !important;
 }
 
 .hero-banner__content {
@@ -151,6 +219,13 @@
   .hero-banner__content {
     width: 100%;
     padding: 28px 22px;
+  }
+
+  .hero-banner__nav-zone {
+    top: 0;
+    bottom: 0;
+    width: 20%;
+    padding: 0 0.5rem;
   }
 
   .hero-banner__title {

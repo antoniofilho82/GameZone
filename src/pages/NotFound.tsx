@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+/** Página de fallback para rotas que não correspondem a uma tela da aplicação. */
 function NotFound() {
   return (
     <section className="page-placeholder">

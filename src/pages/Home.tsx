@@ -17,6 +17,7 @@ const categories = [
   { name: 'Aventura', query: 'aventura', Icon: Compass },
 ]
 
+/** Página inicial com banner, ofertas, destaques e atalhos de categoria. */
 function Home() {
   const { pathname } = useLocation()
   const [games, setGames] = useState<Game[]>([])
@@ -97,7 +98,7 @@ function Home() {
           </Link>
         </div>
         <div className="home-page__game-grid">
-          {offers.map((game) => (
+          {offers.slice(0, 6).map((game) => (
             <GameCard game={game} key={game.id} />
           ))}
         </div>

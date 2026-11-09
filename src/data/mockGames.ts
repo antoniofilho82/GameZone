@@ -14,7 +14,7 @@ export const MOCK_GAMES: Game[] = [
     originalPrice: 179.9,
     discountPercentage: 50,
     genre: ['Ação', 'Ficção científica'],
-    platforms: ['PC', 'PS5', 'Xbox'],
+    platforms: ['PC', 'PlayStation', 'Xbox', 'Nintendo'],
     rating: 4.8,
     releaseDate: '2025-02-14',
     description:
@@ -31,7 +31,7 @@ export const MOCK_GAMES: Game[] = [
     originalPrice: 199.9,
     discountPercentage: 40,
     genre: ['RPG', 'Aventura'],
-    platforms: ['PC', 'PS5'],
+    platforms: ['PC', 'PlayStation'],
     rating: 4.9,
     releaseDate: '2024-10-22',
     description:
@@ -48,7 +48,7 @@ export const MOCK_GAMES: Game[] = [
     originalPrice: 99.9,
     discountPercentage: 40,
     genre: ['Estratégia', 'Simulação'],
-    platforms: ['PC'],
+    platforms: ['PC', 'Mobile'],
     rating: 4.6,
     releaseDate: '2025-01-08',
     description:
@@ -64,7 +64,7 @@ export const MOCK_GAMES: Game[] = [
     originalPrice: 149.9,
     discountPercentage: 50,
     genre: ['Aventura', 'Exploração'],
-    platforms: ['PC', 'Xbox'],
+    platforms: ['PC', 'Xbox', 'Nintendo'],
     rating: 4.7,
     releaseDate: '2024-08-16',
     description:
@@ -78,7 +78,7 @@ export const MOCK_GAMES: Game[] = [
       'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=900&q=85',
     price: 149.9,
     genre: ['Aventura', 'Exploração'],
-    platforms: ['PC', 'PS5'],
+    platforms: ['PC', 'PlayStation'],
     rating: 4.8,
     releaseDate: '2025-05-30',
     description:
@@ -92,7 +92,7 @@ export const MOCK_GAMES: Game[] = [
       'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=85',
     price: 99.9,
     genre: ['Corrida', 'Arcade'],
-    platforms: ['PC', 'PS5', 'Xbox'],
+    platforms: ['PC', 'PlayStation', 'Xbox'],
     rating: 4.5,
     releaseDate: '2025-03-12',
     description:
@@ -106,7 +106,7 @@ export const MOCK_GAMES: Game[] = [
       'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85',
     price: 129.9,
     genre: ['Ação', 'Sobrevivência'],
-    platforms: ['PC', 'PS5', 'Xbox'],
+    platforms: ['PC', 'PlayStation', 'Xbox', 'Mobile'],
     rating: 4.7,
     releaseDate: '2025-04-04',
     description:

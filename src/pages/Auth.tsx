@@ -23,6 +23,7 @@ interface AuthLocationState {
   from?: To
 }
 
+/** Formulário demonstrativo de login/cadastro com perfil local, sem autenticação remota. */
 function Auth() {
   const [mode, setMode] = useState<AuthMode>('login')
   const [email, setEmail] = useState('')

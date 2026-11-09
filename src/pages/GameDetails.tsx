@@ -27,6 +27,7 @@ interface GameMedia {
   position: string
 }
 
+/** Monta a mídia da galeria a partir da capa e dos recursos disponíveis do jogo. */
 function getGalleryMedia(game: Game): GameMedia[] {
   return [
     { src: game.coverUrl, label: 'Arte principal', position: 'center' },
@@ -47,6 +48,7 @@ const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'UTC',
 })
 
+/** Página de detalhes com galeria, preço e ações para o jogo selecionado. */
 function GameDetails() {
   const { id } = useParams<{ id: string }>()
   const [addedFeedback, setAddedFeedback] = useState(0)

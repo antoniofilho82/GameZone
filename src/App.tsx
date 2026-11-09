@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import { FavoritesProvider } from './context/FavoritesContext'
+import ScrollToTop from './components/ScrollToTop'
 import MainLayout from './layouts/MainLayout'
 import Auth from './pages/Auth'
 import Cart from './pages/Cart'
@@ -12,9 +13,11 @@ import GameDetails from './pages/GameDetails'
 import Home from './pages/Home'
 import NotFound from './pages/NotFound'
 
+/** Composição raiz da SPA, com roteador, providers globais e rotas da loja. */
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <CartProvider>
         <FavoritesProvider>
           <Routes>

@@ -14,6 +14,7 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
   currency: 'BRL',
 })
 
+/** Exibe a lista de desejos e permite remover ou acessar jogos salvos. */
 function Favorites() {
   const { favorites, toggleFavorite, totalFavorites } = useFavorites()
   const { addToCart } = useCart()

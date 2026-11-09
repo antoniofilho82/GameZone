@@ -36,6 +36,7 @@ const PAYMENT_ICONS = {
   boleto: Banknote,
 }
 
+/** Valida o formato mínimo do perfil lido do armazenamento local. */
 function isUser(value: unknown): value is User {
   return (
     typeof value === 'object' &&
@@ -49,6 +50,7 @@ function isUser(value: unknown): value is User {
   )
 }
 
+/** Lê o perfil local e retorna null quando não existe ou está malformado. */
 function readStoredUser(): User | null {
   try {
     const storedUser: unknown = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) ?? 'null')
@@ -69,6 +71,7 @@ function readStoredUser(): User | null {
   }
 }
 
+/** Gera uma chave fictícia para a demonstração do fluxo de checkout. */
 function createActivationKey(): string {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   const segment = () =>
@@ -80,6 +83,7 @@ function createActivationKey(): string {
   return `GZ-${segment()}-${segment()}-${segment()}`
 }
 
+/** Checkout simulado com pagamentos fictícios e emissão local de pedidos. */
 function Checkout() {
   const { cart, subtotal, clearCart } = useCart()
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix')

@@ -1,3 +1,4 @@
+/* --- Cabeçalho, filtros e grade do catálogo --- */
 .catalog-page {
   width: min(100% - 48px, 1280px);
   padding: 48px 0 72px;
@@ -176,9 +177,42 @@
 
 .catalog-page__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   align-items: start;
-  gap: 20px;
+  gap: 1.25rem;
+}
+
+.catalog-page__pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.catalog-page__load-more {
+  min-height: 44px;
+  padding: 0.65rem 1.25rem;
+  border: 1px solid #8B5CF6;
+  border-radius: 8px;
+  color: var(--color-text);
+  background-color: var(--color-background-secondary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-interactive),
+    border-color var(--transition-interactive),
+    transform var(--transition-interactive);
+}
+
+.catalog-page__load-more:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-highlight);
+  background-color: var(--color-primary-hover);
+}
+
+.catalog-page__load-more:focus-visible {
+  outline: 2px solid var(--color-highlight);
+  outline-offset: 3px;
 }
 
 .catalog-empty {
@@ -230,9 +264,6 @@
     grid-column: 1 / -1;
   }
 
-  .catalog-page__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 767.98px) {
@@ -252,12 +283,5 @@
 
   .catalog-filters__search {
     grid-column: auto;
-  }
-}
-
-@media (max-width: 479.98px) {
-  .catalog-page__grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
   }
 }

@@ -25,6 +25,7 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
 const COUPON_DISCOUNT_RATE = 0.1
 const VALID_COUPONS = new Set(['GAMEZONE10', 'DESCONTO10'])
 
+/** Verifica se o perfil demonstrativo salvo contém os campos esperados. */
 function hasStoredUser(): boolean {
   try {
     const storedUser: unknown = JSON.parse(localStorage.getItem(USER_STORAGE_KEY) ?? 'null')
@@ -45,6 +46,7 @@ function hasStoredUser(): boolean {
   }
 }
 
+/** Página do carrinho com quantidades, cupons e resumo da compra simulada. */
 function Cart() {
   const { cart, removeFromCart, clearCart, updateQuantity, subtotal } = useCart()
   const [couponCode, setCouponCode] = useState('')

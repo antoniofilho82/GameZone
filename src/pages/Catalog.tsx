@@ -5,19 +5,22 @@ import { Loader2, Search, SearchX, SlidersHorizontal } from 'lucide-react'
 import GameCard from '../components/GameCard'
 import { getGames } from '../services/gameService'
 
-import type { Game } from '../types/game'
+import type { Game, Platform } from '../types/game'
 import { MOCK_GAMES } from '../data/mockGames'
 
 import './Catalog.css'
 
 type GenreFilter = 'Todos' | string
-type PlatformFilter = 'Todas' | string
+type PlatformFilter = 'Todas' | Platform
 type SortOption =
   | 'popularidade'
   | 'preco-crescente'
   | 'preco-decrescente'
   | 'nome-az'
   | 'avaliacao'
+
+const ITEMS_PER_PAGE = 20
+const platformOptions: Platform[] = ['PC', 'PlayStation', 'Xbox', 'Nintendo', 'Mobile']
 
 function isSortOption(value: string): value is SortOption {
   return [
@@ -32,10 +35,6 @@ function isSortOption(value: string): value is SortOption {
 const mockGenres = Array.from(new Set(MOCK_GAMES.flatMap((game) => game.genre))).sort(
   (first, second) => first.localeCompare(second, 'pt-BR'),
 )
-const mockPlatforms = Array.from(new Set(MOCK_GAMES.flatMap((game) => game.platforms))).sort(
-  (first, second) => first.localeCompare(second, 'pt-BR'),
-)
-
 function getGenreFromSearch(search: string): GenreFilter {
   const requestedGenre = new URLSearchParams(search).get('genero')
   const matchingGenre = mockGenres.find(
@@ -45,6 +44,7 @@ function getGenreFromSearch(search: string): GenreFilter {
   return matchingGenre ?? 'Todos'
 }
 
+/** Catálogo com busca, filtros combinados, ordenação e exibição incremental. */
 function Catalog() {
   const location = useLocation()
   const [games, setGames] = useState<Game[]>([])
@@ -55,6 +55,7 @@ function Catalog() {
   )
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformFilter>('Todas')
   const [sortBy, setSortBy] = useState<SortOption>('popularidade')
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
 
   useEffect(() => {
     let isActive = true
@@ -85,29 +86,39 @@ function Catalog() {
     window.scrollTo(0, 0)
   }, [])
 
+  // API e mocks são unificados pelo título, priorizando os dados remotos sem duplicatas.
+  const catalogGames = useMemo(() => {
+    const gamesByTitle = new Map<string, Game>()
+    for (const game of [...games, ...MOCK_GAMES]) {
+      const title = game.title.trim().toLocaleLowerCase('pt-BR')
+      if (!gamesByTitle.has(title)) {
+        gamesByTitle.set(title, game)
+      }
+    }
+    return Array.from(gamesByTitle.values())
+  }, [games])
+
   const genres = useMemo(
     () =>
-      Array.from(new Set([...mockGenres, ...games.flatMap((game) => game.genre)])).sort(
+      Array.from(new Set([...mockGenres, ...catalogGames.flatMap((game) => game.genre)])).sort(
         (first, second) => first.localeCompare(second, 'pt-BR'),
       ),
-    [games],
-  )
-  const platforms = useMemo(
-    () =>
-      Array.from(new Set([...mockPlatforms, ...games.flatMap((game) => game.platforms)])).sort(
-        (first, second) => first.localeCompare(second, 'pt-BR'),
-      ),
-    [games],
+    [catalogGames],
   )
 
+  // Busca, gênero e plataforma são aplicados à base completa antes do limite visível.
   const filteredAndSortedGames = useMemo<Game[]>(() => {
     const normalizedSearch = searchTerm.trim().toLocaleLowerCase('pt-BR')
 
-    const filteredGames = games.filter((game) => {
+    const filteredGames = catalogGames.filter((game) => {
       const matchesSearch =
         normalizedSearch.length === 0 ||
         game.title.toLocaleLowerCase('pt-BR').includes(normalizedSearch)
-      const matchesGenre = selectedGenre === 'Todos' || game.genre.includes(selectedGenre)
+      const matchesGenre =
+        selectedGenre === 'Todos' ||
+        (selectedGenre === 'Ofertas'
+          ? Boolean(game.isOffer || (game.originalPrice !== undefined && game.originalPrice > game.price))
+          : game.genre.includes(selectedGenre))
       const matchesPlatform =
         selectedPlatform === 'Todas' || game.platforms.includes(selectedPlatform)
 
@@ -131,9 +142,10 @@ function Catalog() {
           )
       }
     })
-  }, [games, searchTerm, selectedGenre, selectedPlatform, sortBy])
+  }, [catalogGames, searchTerm, selectedGenre, selectedPlatform, sortBy])
 
   function handleClearFilters() {
+    setVisibleCount(ITEMS_PER_PAGE)
     setSearchTerm('')
     setSelectedGenre('Todos')
     setSelectedPlatform('Todas')
@@ -190,7 +202,10 @@ function Catalog() {
               type="search"
               placeholder="Buscar por título..."
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.currentTarget.value)}
+              onChange={(event) => {
+                setVisibleCount(ITEMS_PER_PAGE)
+                setSearchTerm(event.currentTarget.value)
+              }}
             />
           </label>
 
@@ -198,7 +213,10 @@ function Catalog() {
             <span>Gênero</span>
             <select
               value={selectedGenre}
-              onChange={(event) => setSelectedGenre(event.currentTarget.value)}
+              onChange={(event) => {
+                setVisibleCount(ITEMS_PER_PAGE)
+                setSelectedGenre(event.currentTarget.value)
+              }}
             >
               <option value="Todos">Todos os gêneros</option>
               {genres.map((genre) => (
@@ -213,10 +231,17 @@ function Catalog() {
             <span>Plataforma</span>
             <select
               value={selectedPlatform}
-              onChange={(event) => setSelectedPlatform(event.currentTarget.value)}
+              onChange={(event) => {
+                setVisibleCount(ITEMS_PER_PAGE)
+                const value = event.currentTarget.value
+                const platform = platformOptions.find((option) => option === value)
+                if (platform) {
+                  setSelectedPlatform(platform)
+                }
+              }}
             >
               <option value="Todas">Todas as plataformas</option>
-              {platforms.map((platform) => (
+              {platformOptions.map((platform) => (
                 <option key={platform} value={platform}>
                   {platform}
                 </option>
@@ -231,6 +256,7 @@ function Catalog() {
               onChange={(event) => {
                 const value = event.currentTarget.value
                 if (isSortOption(value)) {
+                  setVisibleCount(ITEMS_PER_PAGE)
                   setSortBy(value)
                 }
               }}
@@ -246,7 +272,8 @@ function Catalog() {
 
         <div className="catalog-filters__footer">
           <p aria-live="polite">
-            Exibindo <strong>{filteredAndSortedGames.length}</strong> de {games.length} jogos
+            Exibindo{' '}
+            <strong>{Math.min(visibleCount, filteredAndSortedGames.length)}</strong> jogos
           </p>
           <button
             className="catalog-filters__clear"
@@ -260,7 +287,7 @@ function Catalog() {
 
       {filteredAndSortedGames.length > 0 ? (
         <div className="catalog-page__grid" aria-label="Resultados do catálogo">
-          {filteredAndSortedGames.map((game: Game) => (
+          {filteredAndSortedGames.slice(0, visibleCount).map((game: Game) => (
             <GameCard game={game} key={game.id} />
           ))}
         </div>
@@ -275,6 +302,17 @@ function Catalog() {
             Limpar filtros
           </button>
         </section>
+      )}
+      {visibleCount < filteredAndSortedGames.length && (
+        <div className="catalog-page__pagination">
+          <button
+            className="catalog-page__load-more"
+            type="button"
+            onClick={() => setVisibleCount((count) => count + ITEMS_PER_PAGE)}
+          >
+            Carregar mais jogos
+          </button>
+        </div>
       )}
     </div>
   )

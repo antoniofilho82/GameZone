@@ -2,6 +2,7 @@ import { Code, Gamepad2, Mail, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import './Footer.css'
 
+/** Rodapé compartilhado com informações e navegação complementar da loja. */
 function Footer() {
   return (
     <footer className="site-footer">

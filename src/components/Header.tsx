@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import {
   Gamepad2,
@@ -12,6 +12,9 @@ import {
 
 import { useCart } from '../context/CartContext'
 import { useFavorites } from '../context/FavoritesContext'
+import { getGames } from '../services/gameService'
+
+import type { Game } from '../types/game'
 
 import './Header.css'
 
@@ -34,6 +37,12 @@ const badgeStyle = {
   lineHeight: 1,
 } as const
 
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+})
+
+/** Indicador compacto da quantidade de itens no carrinho ou favoritos. */
 function CountBadge({ count, kind }: { count: number; kind: 'cart' | 'favorites' }) {
   if (count === 0) {
     return null
@@ -52,10 +61,94 @@ function CountBadge({ count, kind }: { count: number; kind: 'cart' | 'favorites'
   )
 }
 
+/** Navegação principal, ações da conta e autocomplete de jogos do catálogo. */
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [availableGames, setAvailableGames] = useState<Game[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [suggestions, setSuggestions] = useState<Game[]>([])
+  const searchContainerRef = useRef<HTMLDivElement>(null)
+  const searchQueryRef = useRef('')
   const { totalItems } = useCart()
   const { totalFavorites } = useFavorites()
+
+  useEffect(() => {
+    let isActive = true
+
+    // Carrega os títulos disponíveis e atualiza sugestões caso já haja uma busca ativa.
+    async function loadSearchGames() {
+      try {
+        const games = await getGames()
+        if (isActive) {
+          setAvailableGames(games)
+          const query = searchQueryRef.current.trim().toLocaleLowerCase('pt-BR')
+          if (query) {
+            setSuggestions(
+              games
+                .filter((game) => game.title.toLocaleLowerCase('pt-BR').includes(query))
+                .slice(0, 6),
+            )
+          }
+        }
+      } catch (error) {
+        console.error('Não foi possível carregar jogos para a busca do cabeçalho.', error)
+      }
+    }
+
+    void loadSearchGames()
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  useEffect(() => {
+    // Fecha e limpa as sugestões ao clicar fora da busca ou pressionar Escape.
+    function handleOutsideClick(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !searchContainerRef.current?.contains(event.target)
+      ) {
+        searchQueryRef.current = ''
+        setSearchQuery('')
+        setSuggestions([])
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        searchQueryRef.current = ''
+        setSearchQuery('')
+        setSuggestions([])
+      }
+    }
+
+    document.addEventListener('pointerdown', handleOutsideClick)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideClick)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [])
+
+  function handleSearchChange(value: string) {
+    searchQueryRef.current = value
+    setSearchQuery(value)
+    const normalizedQuery = value.trim().toLocaleLowerCase('pt-BR')
+    setSuggestions(
+      normalizedQuery
+        ? availableGames
+            .filter((game) => game.title.toLocaleLowerCase('pt-BR').includes(normalizedQuery))
+            .slice(0, 6)
+        : [],
+    )
+  }
+
+  /** Limpa a busca após a navegação para a página de detalhes escolhida. */
+  function handleSuggestionClick() {
+    searchQueryRef.current = ''
+    setSearchQuery('')
+    setSuggestions([])
+  }
 
   return (
     <header className="site-header">
@@ -126,10 +219,44 @@ function Header() {
           </div>
         </div>
 
-        <label className="site-header__search">
-          <Search size={19} aria-hidden="true" />
-          <input type="search" aria-label="Buscar jogos" placeholder="Buscar jogos..." />
-        </label>
+        <div className="site-header__search-container" ref={searchContainerRef}>
+          <label className="site-header__search">
+            <Search size={19} aria-hidden="true" />
+            <input
+              type="search"
+              aria-label="Buscar jogos"
+              aria-autocomplete="list"
+              aria-expanded={suggestions.length > 0}
+              aria-controls="site-header-search-suggestions"
+              placeholder="Buscar jogos..."
+              value={searchQuery}
+              onChange={(event) => handleSearchChange(event.currentTarget.value)}
+            />
+          </label>
+          {suggestions.length > 0 && (
+            <ul
+              className="site-header__search-suggestions"
+              id="site-header-search-suggestions"
+              aria-label="Sugestões de jogos"
+            >
+              {suggestions.map((game) => (
+                <li key={game.id}>
+                  <Link
+                    className="site-header__search-suggestion"
+                    to={`/jogo/${game.id}`}
+                    onClick={handleSuggestionClick}
+                  >
+                    <img src={game.coverUrl} alt="" loading="lazy" />
+                    <span className="site-header__search-suggestion-title">{game.title}</span>
+                    <span className="site-header__search-suggestion-price">
+                      {currencyFormatter.format(game.price)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
         <div className="site-header__desktop-actions">
           <Link
